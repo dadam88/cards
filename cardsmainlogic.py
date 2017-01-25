@@ -56,7 +56,7 @@ class Card(pygame.sprite.Sprite):
                 else:
                     slot[1] = False
                     self.validmove = False
-                    
+
 card_list = pygame.sprite.Group()
             
 cards = []
@@ -65,7 +65,7 @@ with open('cardlist.txt', 'r') as file:
         cards.append(line.strip())
 
 hand = Hand()
-for card in cards[:10]:
+for card in cards[:3]:
     card_list.add(Card('./Images/'+ card + '.png'))
     
 card = Card('./Images/9_of_hearts.png')
@@ -108,7 +108,8 @@ while True:
             for card in card_list:
                 if card.is_selected:
                     # returns to original position
-                    if card.validslot[1] == True:
+                    
+                    if card.validslot:
                         card.rect.x, card.rect.y = card.validslot[0][0], card.validslot[0][1]
                     else:
                         card.rect.x, card.rect.y = card.clicked
