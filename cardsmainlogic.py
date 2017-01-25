@@ -15,6 +15,10 @@ SCREEN = pygame.display.set_mode((GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT))
 #Frames per second, using in conjunction with pygame.clock.tick
 FPS = 60
 
+class Hand():
+    def __init__(self):
+        cards = []
+
 class Card(pygame.sprite.Sprite):
     def __init__(self, filename):
         # Pygame engine to initialize sprite
@@ -25,7 +29,7 @@ class Card(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         ##################################
         self.is_highlighted = bool
-        self.name = str
+        self.name = filename
         self.is_selected = False
         self.attack = int
         self.defense = int
@@ -34,22 +38,25 @@ class Card(pygame.sprite.Sprite):
         self.validmove = True
         self.validslot = None
 
-        self.rect.x = random.randrange(1,GAMEWINDOW_WIDTH)
-        self.rect.y = random.randrange(1,GAMEWINDOW_HEIGHT)
+        self.rect.x = random.randrange(1,GAMEWINDOW_WIDTH-self.rect.width)
+        self.rect.y = random.randrange(1,GAMEWINDOW_HEIGHT-self.rect.height)
+
     def update(self):
-        print self.validmove
+       
         if self.is_selected:
+            print self.name
             self.rect.centerx, self.rect.centery = current_mouse_pos[0], current_mouse_pos[1] 
         # Slot hover activate
-        for slot in cardslots:
-            if card.rect.colliderect(slot[0],slot[1],slot[2], slot[3]):
-                slot[4] = (255,50,50)
-                self.validmove = True
-                self.validslot = slot
-                break
-            else:
-                slot[4] = (50,50,50)
-                self.validmove = False
+            for slot in cardslots:
+                if self.rect.colliderect(slot[0][0],slot[0][1],slot[0][2], slot[0][3]):
+                    slot[1] = True
+                    self.validmove = True
+                    self.validslot = slot
+                    
+                else:
+                    slot[1] = False
+                    self.validmove = False
+                    
 card_list = pygame.sprite.Group()
             
 cards = []
@@ -57,8 +64,8 @@ with open('cardlist.txt', 'r') as file:
     for line in file:
         cards.append(line.strip())
 
-
-for card in cards[:3]:
+hand = Hand()
+for card in cards[:10]:
     card_list.add(Card('./Images/'+ card + '.png'))
     
 card = Card('./Images/9_of_hearts.png')
@@ -67,7 +74,7 @@ card.rect.centery = GAMEWINDOW_HEIGHT-card.rect.height
 cardwidth = card.rect.width
 cardheight = card.rect.height
 
-card_list.add(card)
+
 
 # Setting up card slots
 cardslots = []
@@ -75,7 +82,7 @@ margin = 50
 for x in range(3):
     x *= 200
     # cardslot[x, y, width, height]
-    cardslots.append([margin+x, 200, cardheight, cardwidth, (50,50,50)])
+    cardslots.append([[margin+x, 200, cardheight, cardwidth, (50,50,50)],[False]])
 
 #Main game loop
 while True:
@@ -101,10 +108,11 @@ while True:
             for card in card_list:
                 if card.is_selected:
                     # returns to original position
-                    if card.validmove == False:
-                        card.rect.x, card.rect.y = card.clicked
+                    if card.validslot[1] == True:
+                        card.rect.x, card.rect.y = card.validslot[0][0], card.validslot[0][1]
                     else:
-                        card.rect.x, card.rect.y = card.validslot[0], card.validslot[1]
+                        card.rect.x, card.rect.y = card.clicked
+                        
                 card.is_selected = False
 
 
@@ -116,7 +124,11 @@ while True:
     SCREEN.fill((100,100,100))
 
     for cardslot in cardslots:
-        pygame.draw.rect(SCREEN, cardslot[4], [cardslot[0], cardslot[1], cardslot[2], cardslot[3]])
+        if cardslot[1] == True:
+            pygame.draw.rect(SCREEN, (200,50,50), [cardslot[0][0], cardslot[0][1], cardslot[0][2], cardslot[0][3]])
+        else:
+            pygame.draw.rect(SCREEN, cardslot[0][4], [cardslot[0][0], cardslot[0][1], cardslot[0][2], cardslot[0][3]])
+            
 
     card_list.update()
     card_list.draw(SCREEN)
