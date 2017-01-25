@@ -15,9 +15,32 @@ SCREEN = pygame.display.set_mode((GAMEWINDOW_WIDTH, GAMEWINDOW_HEIGHT))
 #Frames per second, using in conjunction with pygame.clock.tick
 FPS = 60
 
+class Board():
+    def __init__(self):
+        self.slots = [False, False, False]
+        self.margin = 50
+
+    def draw_board(self):
+        for x in range(3):
+            x *= 200
+            pygame.draw.rect(SCREEN, (0,255,0), [self.margin+x, 40, cardheight, cardwidth])
+
+
 class Hand():
     def __init__(self):
-        cards = []
+        self.cards = []
+        self.card_slots = [(0,200), (400,400)]
+    def add_card(self, card):
+        if len(self.cards) < 3:
+            print "Card Added"
+            self.cards.append(card)
+        else:
+            print "Hand Full"
+
+    def update(self):
+        pass
+        
+
 
 class Card(pygame.sprite.Sprite):
     def __init__(self, filename):
@@ -39,7 +62,7 @@ class Card(pygame.sprite.Sprite):
         self.validslot = None
 
         self.rect.x = random.randrange(1,GAMEWINDOW_WIDTH-self.rect.width)
-        self.rect.y = random.randrange(1,GAMEWINDOW_HEIGHT-self.rect.height)
+        self.rect.y = random.randrange(400,GAMEWINDOW_HEIGHT-self.rect.height)
 
     def update(self):
        
@@ -57,6 +80,7 @@ class Card(pygame.sprite.Sprite):
                     slot[1] = False
                     self.validmove = False
 
+
 card_list = pygame.sprite.Group()
             
 cards = []
@@ -64,9 +88,8 @@ with open('cardlist.txt', 'r') as file:
     for line in file:
         cards.append(line.strip())
 
-hand = Hand()
-for card in cards[:3]:
-    card_list.add(Card('./Images/'+ card + '.png'))
+# for card in cards[:3]:
+#     card_list.add(Card('./Images/'+ card + '.png'))
     
 card = Card('./Images/9_of_hearts.png')
 card.rect.centerx = GAMEWINDOW_WIDTH/2
@@ -75,6 +98,8 @@ cardwidth = card.rect.width
 cardheight = card.rect.height
 
 
+hand = Hand()
+board = Board()
 
 # Setting up card slots
 cardslots = []
@@ -83,7 +108,7 @@ for x in range(3):
     x *= 200
     # cardslot[x, y, width, height]
     cardslots.append([[margin+x, 200, cardheight, cardwidth, (50,50,50)],[False]])
-
+print cards
 #Main game loop
 while True:
     for event in pygame.event.get():
@@ -103,12 +128,14 @@ while True:
                     card.clicked = card.rect.x, card.rect.y
                     card.is_selected = True
 
+            hand.add_card(Card('./Images/'+ random.choice(cards) + '.png'))
+            card_list.add(hand.cards[-1:])
+
 
         elif event.type == pygame.MOUSEBUTTONUP:
             for card in card_list:
                 if card.is_selected:
                     # returns to original position
-                    
                     if card.validslot:
                         card.rect.x, card.rect.y = card.validslot[0][0], card.validslot[0][1]
                     else:
@@ -124,15 +151,18 @@ while True:
 
     SCREEN.fill((100,100,100))
 
+
     for cardslot in cardslots:
         if cardslot[1] == True:
             pygame.draw.rect(SCREEN, (200,50,50), [cardslot[0][0], cardslot[0][1], cardslot[0][2], cardslot[0][3]])
         else:
             pygame.draw.rect(SCREEN, cardslot[0][4], [cardslot[0][0], cardslot[0][1], cardslot[0][2], cardslot[0][3]])
             
-
+    pygame.draw.line(SCREEN, (50,50,50), (0,400), (600,400), 5)
+    board.draw_board()
     card_list.update()
     card_list.draw(SCREEN)
+
 
 
   
